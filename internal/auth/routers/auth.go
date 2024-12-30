@@ -5,12 +5,12 @@ import (
 	auth_handlers "github.com/ladmakhi81/realtime-blogs/internal/auth/handlers"
 )
 
-type AuthRouters struct {
+type AuthRouter struct {
 	ApiRouter   *mux.Router
 	AuthHandler auth_handlers.AuthHandler
 }
 
-func (authRouter *AuthRouters) Setup() {
+func (authRouter *AuthRouter) Setup() {
 	authApi := authRouter.ApiRouter.PathPrefix("/auth").Subrouter()
 
 	authApi.HandleFunc(

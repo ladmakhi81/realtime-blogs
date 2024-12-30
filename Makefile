@@ -5,7 +5,7 @@ export DB_PORT=$(shell cat .env | grep DB_PORT | cut -d '=' -f2)
 export DB_NAME=$(shell cat .env | grep DB_NAME | cut -d '=' -f2)
 
 build:
-	@go build -o bin/api ./cmd/api/main.go
+	@go build -o ./bin/api ./cmd/api/main.go
 
 run: build
 	@./bin/api

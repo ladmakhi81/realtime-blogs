@@ -10,3 +10,7 @@ type User struct {
 	LastName   string `json:"lastName"`
 	pkg_entities.BaseEntity
 }
+
+func NewUser(email, password string) *User {
+	return &User{Email: email, Password: password}
+}

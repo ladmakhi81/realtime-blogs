@@ -11,3 +11,11 @@ type Token struct {
 	User         *users_entities.User `json:"user"`
 	pkg_entities.BaseEntity
 }
+
+func NewToken(accessToken, refreshToken string, user *users_entities.User) *Token {
+	return &Token{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User:         user,
+	}
+}

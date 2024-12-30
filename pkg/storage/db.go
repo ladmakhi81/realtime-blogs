@@ -40,6 +40,6 @@ func (storage *Storage) Init() error {
 		return err
 	}
 	storage.DB = db
-	log.Fatalln("database connected")
+	log.Println("database connected")
 	return nil
 }

@@ -1,5 +1,8 @@
 package users_contracts
 
+import users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
+
 type UserRepositoryContract interface {
-	UpdateUserById()
+	FindByEmail(email string) (*users_entities.User, error)
+	CreateUser(user *users_entities.User) error
 }

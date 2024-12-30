@@ -1,13 +1,27 @@
 package categories_handlers
 
-import "net/http"
+import (
+	"net/http"
 
-type CategoryHandler struct{}
+	categories_services "github.com/ladmakhi81/realtime-blogs/internal/categories/services"
+)
 
-func (categoryHandler CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {}
+type CategoryHandler struct {
+	CategoryService categories_services.CategoryService
+}
 
-func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) {}
+func (categoryHandler CategoryHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
+	categoryHandler.CategoryService.CreateCategory()
+}
 
-func (categoryHandler CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {}
+func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) {
+	categoryHandler.CategoryService.DeleteCategoryById()
+}
 
-func (categoryHandler CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) {}
+func (categoryHandler CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
+	categoryHandler.CategoryService.UpdateCategoryById()
+}
+
+func (categoryHandler CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
+	categoryHandler.CategoryService.GetCategories()
+}

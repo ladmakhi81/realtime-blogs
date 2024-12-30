@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS "_tokens" (
     "refresh_token" TEXT           NOT NULL,
     "user_id"       BIGINT         NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY ("user_id") REFERENCES "_users"("id") ON DELETE NO ACTION
-)
+);

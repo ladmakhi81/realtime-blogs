@@ -1,6 +1,10 @@
 package categories_services
 
-type CategoryService struct{}
+import categories_contracts "github.com/ladmakhi81/realtime-blogs/internal/categories/contracts"
+
+type CategoryService struct {
+	categoryRepo categories_contracts.CategoryRepositoryContract
+}
 
 func (categoryService CategoryService) CreateCategory() {}
 

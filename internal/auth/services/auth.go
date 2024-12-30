@@ -1,6 +1,10 @@
 package auth_services
 
-type AuthService struct{}
+import auth_contracts "github.com/ladmakhi81/realtime-blogs/internal/auth/contracts"
+
+type AuthService struct {
+	TokenRepository auth_contracts.TokenRepositoryContract
+}
 
 func (authService AuthService) Login() {}
 

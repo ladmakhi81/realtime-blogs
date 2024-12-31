@@ -79,10 +79,13 @@ func (categoryService CategoryService) GetCategoryById(id uint) (*categories_ent
 	return category, nil
 }
 
-func (categoryService CategoryService) DeleteCategoryById(id uint) error {
+func (categoryService CategoryService) DeleteCategoryById(id uint, creatorId uint) error {
 	category, categoryErr := categoryService.GetCategoryById(id)
 	if categoryErr != nil {
 		return categoryErr
+	}
+	if permissionErr := categoryService.checkPermissionOperation(category.ID, creatorId); permissionErr != nil {
+		return permissionErr
 	}
 	deleteCategoryErr := categoryService.CategoryRepo.DeleteCategoryById(category.ID)
 	if deleteCategoryErr != nil {
@@ -96,22 +99,13 @@ func (categoryService CategoryService) DeleteCategoryById(id uint) error {
 }
 
 func (categoryService CategoryService) UpdateCategoryById(id uint, creatorId uint, reqBody categories_types.ModifyCategoryReqBody) error {
-	category, categoryErr := categoryService.CategoryRepo.GetCategoryById(id)
+	category, categoryErr := categoryService.GetCategoryById(id)
 	if categoryErr != nil {
 		return categoryErr
 	}
-	authUser, findUserErr := categoryService.UserService.FindUserById(creatorId)
-	if findUserErr != nil {
-		return findUserErr
+	if permissionErr := categoryService.checkPermissionOperation(category.CreatedBy.ID, creatorId); permissionErr != nil {
+		return permissionErr
 	}
-
-	if authUser.ID != category.CreatedBy.ID {
-		return pkg_types.NewClientError(
-			http.StatusForbidden,
-			"only creator of category can update this category",
-		)
-	}
-
 	duplicatedCategory, duplicatedCategoryErr := categoryService.CategoryRepo.GetCategoryByTitle(reqBody.Title)
 	if duplicatedCategoryErr != nil {
 		return pkg_types.NewServerError(
@@ -132,6 +126,20 @@ func (categoryService CategoryService) UpdateCategoryById(id uint, creatorId uin
 			"error in update category",
 			"CategoryService.UpdateCategoryId",
 			updateCategoryErr.Error(),
+		)
+	}
+	return nil
+}
+
+func (categoryService CategoryService) checkPermissionOperation(creatorId, userRequestedId uint) error {
+	authUser, findUserErr := categoryService.UserService.FindUserById(userRequestedId)
+	if findUserErr != nil {
+		return findUserErr
+	}
+	if authUser.ID != creatorId {
+		return pkg_types.NewClientError(
+			http.StatusForbidden,
+			"only creator of category can update this category",
 		)
 	}
 	return nil

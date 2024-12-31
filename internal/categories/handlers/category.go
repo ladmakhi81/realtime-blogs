@@ -54,6 +54,7 @@ func (categoryHandler CategoryHandler) CreateCategory(w http.ResponseWriter, r *
 }
 
 func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) error {
+	authUserId := r.Context().Value("AuthUser").(*pkg_types.UserAuthClaim).ID
 	params := mux.Vars(r)
 	categoryIdParam := params["id"]
 	var categoryId uint
@@ -62,7 +63,7 @@ func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter,
 	} else {
 		categoryId = uint(parsedId)
 	}
-	deleteCategoryErr := categoryHandler.CategoryService.DeleteCategoryById(categoryId)
+	deleteCategoryErr := categoryHandler.CategoryService.DeleteCategoryById(categoryId, authUserId)
 	if deleteCategoryErr != nil {
 		return deleteCategoryErr
 	}

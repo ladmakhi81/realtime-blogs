@@ -6,6 +6,6 @@ type CategoryRepositoryContract interface {
 	CreateCategory(category *categories_entities.Category) error
 	UpdateCategoryId()
 	DeleteCategoryById()
-	GetCategories()
+	GetCategories(page, limit uint) (*[]categories_entities.Category, error)
 	GetCategoryByTitle(title string) (*categories_entities.Category, error)
 }

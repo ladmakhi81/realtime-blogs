@@ -4,6 +4,7 @@ import (
 	"database/sql"
 
 	categories_entities "github.com/ladmakhi81/realtime-blogs/internal/categories/entities"
+	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
 	pkg_storage "github.com/ladmakhi81/realtime-blogs/pkg/storage"
 )
 
@@ -37,7 +38,44 @@ func (categoryRepository CategoryRepository) UpdateCategoryId() {}
 
 func (categoryRepository CategoryRepository) DeleteCategoryById() {}
 
-func (categoryRepository CategoryRepository) GetCategories() {}
+func (categoryRepository CategoryRepository) GetCategories(page, limit uint) (*[]categories_entities.Category, error) {
+	command := `
+		SELECT 
+			c.id, c.title, c.created_at, c.updated_at, 
+			u.id AS created_by_id, u.email AS created_by_email, u.created_at AS created_by_created_at, u.updated_at AS created_by_updated_at
+		FROM _categories c
+		INNER JOIN _users u ON u.id = c.created_by_id
+		ORDER BY c.id DESC 
+		LIMIT $1 OFFSET $2
+
+	`
+	rows, queryErr := categoryRepository.Storage.DB.Query(command, limit, page*limit)
+	defer rows.Close()
+	if queryErr != nil {
+		return nil, queryErr
+	}
+	categories := []categories_entities.Category{}
+	for rows.Next() {
+		category := categories_entities.Category{}
+		createdBy := new(users_entities.User)
+		scanErr := rows.Scan(
+			&category.ID,
+			&category.Title,
+			&category.CreatedAt,
+			&category.UpdatedAt,
+			&createdBy.ID,
+			&createdBy.Email,
+			&createdBy.CreatedAt,
+			&createdBy.UpdatedAt,
+		)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+		category.CreatedBy = createdBy
+		categories = append(categories, category)
+	}
+	return &categories, nil
+}
 
 func (categoryRepository CategoryRepository) GetCategoryByTitle(title string) (*categories_entities.Category, error) {
 	command := `

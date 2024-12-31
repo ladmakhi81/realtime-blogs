@@ -57,5 +57,19 @@ func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter,
 func (categoryHandler CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
 }
 
-func (categoryHandler CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) {
+func (categoryHandler CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) error {
+	page, limit, paginationParseErr := pkg_utils.ExtractPaginationQuery(r.URL.Query())
+	if paginationParseErr != nil {
+		return paginationParseErr
+	}
+	categories, err := categoryHandler.CategoryService.GetCategories(page, limit)
+	if err != nil {
+		return err
+	}
+	pkg_utils.JsonResponse(
+		w,
+		http.StatusOK,
+		categories_types.GetCategoriesList{Categories: categories},
+	)
+	return nil
 }

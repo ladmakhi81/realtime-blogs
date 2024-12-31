@@ -11,4 +11,6 @@ type CategoryServiceContract interface {
 		reqBody categories_types.ModifyCategoryReqBody,
 		creator *users_entities.User,
 	) (*categories_entities.Category, error)
+
+	GetCategories(page, limit uint) (*[]categories_entities.Category, error)
 }

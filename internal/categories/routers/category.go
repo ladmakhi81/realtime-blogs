@@ -25,7 +25,7 @@ func (categoryRouter CategoryRouter) Setup() {
 	categoryApi := categoryRouter.ApiRouter.PathPrefix("/categories").Subrouter()
 
 	categoryApi.HandleFunc(
-		"/",
+		"",
 		pkg_decorators.ApiErrorDecorator(
 			pkg_decorators.ApiAuthDecorator(
 				categoryRouter.CategoryHandler.CreateCategory,
@@ -44,7 +44,11 @@ func (categoryRouter CategoryRouter) Setup() {
 	).Methods("patch")
 
 	categoryApi.HandleFunc(
-		"/",
-		categoryRouter.CategoryHandler.GetCategories,
+		"",
+		pkg_decorators.ApiErrorDecorator(
+			pkg_decorators.ApiAuthDecorator(
+				categoryRouter.CategoryHandler.GetCategories,
+			),
+		),
 	).Methods("get")
 }

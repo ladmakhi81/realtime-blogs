@@ -11,6 +11,10 @@ import (
 	auth_repositories "github.com/ladmakhi81/realtime-blogs/internal/auth/repositories"
 	auth_routers "github.com/ladmakhi81/realtime-blogs/internal/auth/routers"
 	auth_services "github.com/ladmakhi81/realtime-blogs/internal/auth/services"
+	categories_handlers "github.com/ladmakhi81/realtime-blogs/internal/categories/handlers"
+	categories_repositories "github.com/ladmakhi81/realtime-blogs/internal/categories/repositories"
+	categories_routers "github.com/ladmakhi81/realtime-blogs/internal/categories/routers"
+	categories_services "github.com/ladmakhi81/realtime-blogs/internal/categories/services"
 	users_repositories "github.com/ladmakhi81/realtime-blogs/internal/users/repositories"
 	users_services "github.com/ladmakhi81/realtime-blogs/internal/users/services"
 	pkg_storage "github.com/ladmakhi81/realtime-blogs/pkg/storage"
@@ -33,19 +37,25 @@ func main() {
 	// repos
 	userRepo := users_repositories.NewUserRepository(dbStorage)
 	tokenRepo := auth_repositories.NewTokenRepository(dbStorage)
+	categoryRepo := categories_repositories.NewCategoryRepository(dbStorage)
 
 	// services
 	passwordHashService := users_services.NewPasswordHashService()
 	tokenService := auth_services.NewTokenService(tokenRepo)
 	userService := users_services.NewUserService(userRepo, passwordHashService)
 	authService := auth_services.NewAuthService(tokenService, userService)
+	categoryService := categories_services.NewCategoryService(categoryRepo)
 
 	// handlers
-	authHandler := auth_handlers.NewAuthHandler(&authService)
+	authHandler := auth_handlers.NewAuthHandler(authService)
+	categoryHandler := categories_handlers.NewCategoryHandler(categoryService, userService)
 
 	// routers
-	authRouter := auth_routers.NewAuthRouter(apiRouter, &authHandler)
+	authRouter := auth_routers.NewAuthRouter(apiRouter, authHandler)
+	categoryRouter := categories_routers.NewCategoryRouter(apiRouter, categoryHandler)
+
 	authRouter.Setup()
+	categoryRouter.Setup()
 
 	listenErr := http.ListenAndServe(":8080", apiRouter)
 

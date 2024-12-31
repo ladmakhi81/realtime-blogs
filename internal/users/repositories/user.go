@@ -8,11 +8,11 @@ import (
 )
 
 type UserRepository struct {
-	DBStorage pkg_storage.Storage
+	Storage pkg_storage.Storage
 }
 
 func NewUserRepository(storage pkg_storage.Storage) UserRepository {
-	return UserRepository{DBStorage: storage}
+	return UserRepository{Storage: storage}
 }
 
 func (userRepo UserRepository) CreateUser(user *users_entities.User) error {
@@ -23,7 +23,7 @@ func (userRepo UserRepository) CreateUser(user *users_entities.User) error {
 		RETURNING "id", "created_at", "updated_at", 
 		"email", "password", "profile_url", "first_name", "last_name";
 	`
-	row := userRepo.DBStorage.DB.QueryRow(command, user.Email, user.Password)
+	row := userRepo.Storage.DB.QueryRow(command, user.Email, user.Password)
 	scanErr := row.Scan(
 		&user.ID,
 		&user.CreatedAt,
@@ -45,7 +45,7 @@ func (userRepo UserRepository) FindByEmail(email string) (*users_entities.User, 
 		SELECT * FROM "_users" WHERE "email"=$1 LIMIT 1;
 	`
 	user := new(users_entities.User)
-	row := userRepo.DBStorage.DB.QueryRow(command, email)
+	row := userRepo.Storage.DB.QueryRow(command, email)
 	scanErr := row.Scan(
 		&user.ID,
 		&user.CreatedAt,
@@ -62,6 +62,28 @@ func (userRepo UserRepository) FindByEmail(email string) (*users_entities.User, 
 		} else {
 			return nil, scanErr
 		}
+	}
+	return user, nil
+}
+
+func (userRepo UserRepository) FindUserById(id uint) (*users_entities.User, error) {
+	command := `
+		SELECT * FROM "_users" WHERE "id" = $1 LIMIT 1;
+	`
+	user := new(users_entities.User)
+	row := userRepo.Storage.DB.QueryRow(command, id)
+	scanErr := row.Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.Email,
+		&user.Password,
+		&user.ProfileURL,
+		&user.FirstName,
+		&user.LastName,
+	)
+	if scanErr != nil {
+		return nil, scanErr
 	}
 	return user, nil
 }

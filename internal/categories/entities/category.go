@@ -10,3 +10,7 @@ type Category struct {
 	CreatedBy *users_entities.User `json:"createdBy"`
 	pkg_entities.BaseEntity
 }
+
+func NewCategory(title string, createdBy *users_entities.User) *Category {
+	return &Category{Title: title, CreatedBy: createdBy}
+}

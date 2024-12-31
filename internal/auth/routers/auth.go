@@ -8,10 +8,10 @@ import (
 
 type AuthRouter struct {
 	ApiRouter   *mux.Router
-	AuthHandler *auth_handlers.AuthHandler
+	AuthHandler auth_handlers.AuthHandler
 }
 
-func NewAuthRouter(apiRouter *mux.Router, authHandler *auth_handlers.AuthHandler) AuthRouter {
+func NewAuthRouter(apiRouter *mux.Router, authHandler auth_handlers.AuthHandler) AuthRouter {
 	return AuthRouter{ApiRouter: apiRouter, AuthHandler: authHandler}
 }
 

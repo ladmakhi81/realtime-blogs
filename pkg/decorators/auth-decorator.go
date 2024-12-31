@@ -13,6 +13,9 @@ func ApiAuthDecorator(fn pkg_types.ApiHttpHandler) pkg_types.ApiHttpHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		authHeaderStr := r.Header.Get("Authorization")
 		authHeader := strings.Split(authHeaderStr, " ")
+		if len(authHeader) < 2 {
+			return pkg_types.NewClientError(http.StatusUnauthorized, "Unauthorized")
+		}
 		bearer := strings.ToLower(authHeader[0])
 		token := authHeader[1]
 		if bearer != "bearer" || token == "" {

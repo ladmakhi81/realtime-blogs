@@ -71,3 +71,15 @@ func (userService UserService) FindByEmailAndPassword(email string, password str
 	}
 	return user, nil
 }
+
+func (userService UserService) FindUserById(id uint) (*users_entities.User, error) {
+	user, findUserErr := userService.UserRepo.FindUserById(id)
+	if findUserErr != nil {
+		return nil, pkg_types.NewServerError(
+			"error in find user by id",
+			"UserService.FindUserById",
+			findUserErr.Error(),
+		)
+	}
+	return user, nil
+}

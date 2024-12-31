@@ -4,7 +4,7 @@ import categories_entities "github.com/ladmakhi81/realtime-blogs/internal/catego
 
 type CategoryRepositoryContract interface {
 	CreateCategory(category *categories_entities.Category) error
-	UpdateCategoryId()
+	UpdateCategoryId(category *categories_entities.Category) error
 	DeleteCategoryById(id uint) error
 	GetCategories(page, limit uint) (*[]categories_entities.Category, error)
 	GetCategoryByTitle(title string) (*categories_entities.Category, error)

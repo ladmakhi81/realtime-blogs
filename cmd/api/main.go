@@ -44,7 +44,7 @@ func main() {
 	tokenService := auth_services.NewTokenService(tokenRepo)
 	userService := users_services.NewUserService(userRepo, passwordHashService)
 	authService := auth_services.NewAuthService(tokenService, userService)
-	categoryService := categories_services.NewCategoryService(categoryRepo)
+	categoryService := categories_services.NewCategoryService(categoryRepo, userService)
 
 	// handlers
 	authHandler := auth_handlers.NewAuthHandler(authService)

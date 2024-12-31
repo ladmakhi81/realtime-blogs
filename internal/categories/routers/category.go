@@ -46,8 +46,12 @@ func (categoryRouter CategoryRouter) Setup() {
 
 	categoryApi.HandleFunc(
 		"/{id}",
-		categoryRouter.CategoryHandler.UpdateCategoryById,
-	).Methods(http.MethodPatch)
+		pkg_decorators.ApiErrorDecorator(
+			pkg_decorators.ApiAuthDecorator(
+				categoryRouter.CategoryHandler.UpdateCategoryById,
+			),
+		),
+	).Methods(http.MethodPut)
 
 	categoryApi.HandleFunc(
 		"",

@@ -6,18 +6,21 @@ import (
 	categories_contracts "github.com/ladmakhi81/realtime-blogs/internal/categories/contracts"
 	categories_entities "github.com/ladmakhi81/realtime-blogs/internal/categories/entities"
 	categories_types "github.com/ladmakhi81/realtime-blogs/internal/categories/types"
+	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
 	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
 )
 
 type CategoryService struct {
 	CategoryRepo categories_contracts.CategoryRepositoryContract
+	UserService  users_contracts.UserServiceContract
 }
 
 func NewCategoryService(
 	categoryRepo categories_contracts.CategoryRepositoryContract,
+	userService users_contracts.UserServiceContract,
 ) CategoryService {
-	return CategoryService{CategoryRepo: categoryRepo}
+	return CategoryService{CategoryRepo: categoryRepo, UserService: userService}
 }
 
 func (categoryService CategoryService) CreateCategory(
@@ -87,6 +90,48 @@ func (categoryService CategoryService) DeleteCategoryById(id uint) error {
 			"error in deleting category from database",
 			"CategoryService.DeleteCategoryById",
 			deleteCategoryErr.Error(),
+		)
+	}
+	return nil
+}
+
+func (categoryService CategoryService) UpdateCategoryById(id uint, creatorId uint, reqBody categories_types.ModifyCategoryReqBody) error {
+	category, categoryErr := categoryService.CategoryRepo.GetCategoryById(id)
+	if categoryErr != nil {
+		return categoryErr
+	}
+	authUser, findUserErr := categoryService.UserService.FindUserById(creatorId)
+	if findUserErr != nil {
+		return findUserErr
+	}
+
+	if authUser.ID != category.CreatedBy.ID {
+		return pkg_types.NewClientError(
+			http.StatusForbidden,
+			"only creator of category can update this category",
+		)
+	}
+
+	duplicatedCategory, duplicatedCategoryErr := categoryService.CategoryRepo.GetCategoryByTitle(reqBody.Title)
+	if duplicatedCategoryErr != nil {
+		return pkg_types.NewServerError(
+			"error in finding category by title",
+			"CategoryService.UpdateCategoryById.GetCategoryByTitle",
+			duplicatedCategoryErr.Error(),
+		)
+	}
+
+	if duplicatedCategory != nil && duplicatedCategory.ID != id {
+		return pkg_types.NewClientError(http.StatusConflict, "category exist with this title")
+	}
+	category.Title = reqBody.Title
+
+	updateCategoryErr := categoryService.CategoryRepo.UpdateCategoryId(category)
+	if updateCategoryErr != nil {
+		return pkg_types.NewServerError(
+			"error in update category",
+			"CategoryService.UpdateCategoryId",
+			updateCategoryErr.Error(),
 		)
 	}
 	return nil

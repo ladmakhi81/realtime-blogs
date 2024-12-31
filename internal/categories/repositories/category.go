@@ -34,7 +34,22 @@ func (categoryRepository CategoryRepository) CreateCategory(category *categories
 	return scanErr
 }
 
-func (categoryRepository CategoryRepository) UpdateCategoryId() {}
+func (categoryRepository CategoryRepository) UpdateCategoryId(category *categories_entities.Category) error {
+	command := `
+		UPDATE _categories 
+		SET title = $1
+		WHERE id = $2
+	`
+	statement, pErr := categoryRepository.Storage.DB.Prepare(command)
+	if pErr != nil {
+		return pErr
+	}
+	_, eErr := statement.Exec(category.Title, category.ID)
+	if eErr != nil {
+		return eErr
+	}
+	return nil
+}
 
 func (categoryRepository CategoryRepository) DeleteCategoryById(id uint) error {
 	command := `

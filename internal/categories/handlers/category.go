@@ -70,7 +70,32 @@ func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter,
 	return nil
 }
 
-func (categoryHandler CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
+func (categoryHandler CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) error {
+	authUserId := r.Context().Value("AuthUser").(*pkg_types.UserAuthClaim).ID
+	params := mux.Vars(r)
+	paramId := params["id"]
+	var categoryId uint
+	if parsedId, parsedErr := strconv.Atoi(paramId); parsedErr != nil {
+		return pkg_types.NewClientError(http.StatusBadRequest, "invalid category id")
+	} else {
+		categoryId = uint(parsedId)
+	}
+	reqBody := new(categories_types.ModifyCategoryReqBody)
+	if decodeErr := json.NewDecoder(r.Body).Decode(reqBody); decodeErr != nil {
+		return pkg_types.NewServerError(
+			"error in parsing input values",
+			"CategoryHandler.UpdateCategoryById",
+			decodeErr.Error(),
+		)
+	}
+	defer r.Body.Close()
+	if validateErr := pkg_utils.ValidateHttpReqBody(reqBody); validateErr != nil {
+		return pkg_types.NewClientValidationError(validateErr)
+	}
+	if updateErr := categoryHandler.CategoryService.UpdateCategoryById(categoryId, authUserId, *reqBody); updateErr != nil {
+		return updateErr
+	}
+	return nil
 }
 
 func (categoryHandler CategoryHandler) GetCategories(w http.ResponseWriter, r *http.Request) error {

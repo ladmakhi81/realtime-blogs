@@ -1,6 +1,8 @@
 package users_repositories
 
 import (
+	"database/sql"
+
 	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
 	pkg_storage "github.com/ladmakhi81/realtime-blogs/pkg/storage"
 )
@@ -17,11 +19,11 @@ func (userRepo UserRepository) CreateUser(user *users_entities.User) error {
 	command := `
 		INSERT INTO 
 		"_users"
-		("first_name", "last_name") VALUES ($1, $2)
+		("email", "password") VALUES ($1, $2)
 		RETURNING "id", "created_at", "updated_at", 
 		"email", "password", "profile_url", "first_name", "last_name";
 	`
-	row := userRepo.DBStorage.DB.QueryRow(command, user.FirstName, user.LastName)
+	row := userRepo.DBStorage.DB.QueryRow(command, user.Email, user.Password)
 	scanErr := row.Scan(
 		&user.ID,
 		&user.CreatedAt,
@@ -55,7 +57,11 @@ func (userRepo UserRepository) FindByEmail(email string) (*users_entities.User, 
 		&user.LastName,
 	)
 	if scanErr != nil {
-		return nil, scanErr
+		if scanErr == sql.ErrNoRows {
+			return nil, nil
+		} else {
+			return nil, scanErr
+		}
 	}
 	return user, nil
 }

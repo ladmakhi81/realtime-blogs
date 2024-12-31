@@ -35,6 +35,18 @@ func (tokenRepo TokenRepository) CreateToken(token *auth_entities.Token) error {
 	return nil
 }
 
-func (tokenRepo TokenRepository) DeleteTokensByUserId() {}
+func (tokenRepo TokenRepository) DeleteTokensByUserId(userID uint) error {
+	command := `
+		DELETE FROM "_tokens" WHERE "user_id" = $1;
+	`
+	statement, pErr := tokenRepo.DBStorage.DB.Prepare(command)
+	if pErr != nil {
+		return pErr
+	}
+	if _, eErr := statement.Exec(userID); eErr != nil {
+		return eErr
+	}
+	return nil
+}
 
 func (tokenRepo TokenRepository) GetTokenByUserId() {}

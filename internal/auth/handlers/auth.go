@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"net/http"
 
-	auth_services "github.com/ladmakhi81/realtime-blogs/internal/auth/services"
+	auth_contracts "github.com/ladmakhi81/realtime-blogs/internal/auth/contracts"
 	auth_types "github.com/ladmakhi81/realtime-blogs/internal/auth/types"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
 	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
 )
 
 type AuthHandler struct {
-	AuthService *auth_services.AuthService
+	AuthService auth_contracts.AuthServiceContract
 }
 
-func NewAuthHandler(authService *auth_services.AuthService) AuthHandler {
+func NewAuthHandler(authService auth_contracts.AuthServiceContract) AuthHandler {
 	return AuthHandler{AuthService: authService}
 }
 

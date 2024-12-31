@@ -22,7 +22,7 @@ type ServerError struct {
 }
 
 func (richError *ServerError) Error() string {
-	return fmt.Sprintf("error : %s", richError.Message)
+	return fmt.Sprintf("error : %s - %s", richError.Message, richError.ErrorMessage)
 }
 
 func (richError *ClientError) Error() string {

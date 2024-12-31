@@ -4,23 +4,30 @@ import (
 	"net/http"
 
 	auth_contracts "github.com/ladmakhi81/realtime-blogs/internal/auth/contracts"
-	auth_entities "github.com/ladmakhi81/realtime-blogs/internal/auth/entities"
 	auth_types "github.com/ladmakhi81/realtime-blogs/internal/auth/types"
 	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
 	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
-	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
 )
 
 type AuthService struct {
-	TokenRepository auth_contracts.TokenRepositoryContract
-	UserRepository  users_contracts.UserRepositoryContract
+	TokenRepository  auth_contracts.TokenRepositoryContract
+	UserRepository   users_contracts.UserRepositoryContract
+	TokenService     auth_contracts.TokenServiceContractor
+	PasswordHashUtil auth_contracts.PasswordHashContract
 }
 
-func NewAuthService(tokenRepository auth_contracts.TokenRepositoryContract, userRepository users_contracts.UserRepositoryContract) AuthService {
+func NewAuthService(
+	tokenRepository auth_contracts.TokenRepositoryContract,
+	userRepository users_contracts.UserRepositoryContract,
+	tokenService auth_contracts.TokenServiceContractor,
+	passwordHashUtil auth_contracts.PasswordHashContract,
+) AuthService {
 	return AuthService{
-		TokenRepository: tokenRepository,
-		UserRepository:  userRepository,
+		TokenRepository:  tokenRepository,
+		UserRepository:   userRepository,
+		TokenService:     tokenService,
+		PasswordHashUtil: passwordHashUtil,
 	}
 }
 
@@ -39,37 +46,20 @@ func (authService AuthService) Login(reqBody auth_types.LoginReqBody) (*auth_typ
 			"unable to find user by this email address and password",
 		)
 	}
-	if isValid := pkg_utils.CompareHashedText(reqBody.Password, user.Password); !isValid {
+	if isValid := authService.PasswordHashUtil.CompareHashedText(reqBody.Password, user.Password); !isValid {
 		return nil, pkg_types.NewClientError(
 			http.StatusNotFound,
 			"unable to find user by this email address and password",
 		)
 	}
-	accessToken, accessTokenErr := pkg_utils.GenerateToken(user)
-	if accessTokenErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in generating access token",
-			"AuthService.Login.GenerateToken",
-			accessTokenErr.Error(),
-		)
+	token, tokenErr := authService.TokenService.CreateToken(user)
+	if tokenErr != nil {
+		return nil, tokenErr
 	}
-	refreshToken, refreshTokenErr := pkg_utils.GenerateRefreshToken()
-	if refreshTokenErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in generating refresh token",
-			"AuthService.Login.GenerateRefreshToken",
-			refreshTokenErr.Error(),
-		)
-	}
-	token := auth_entities.NewToken(accessToken, refreshToken, user)
-	if createTokenErr := authService.TokenRepository.CreateToken(token); createTokenErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in saving token on database",
-			"AuthService.Login.CreateToken",
-			createTokenErr.Error(),
-		)
-	}
-	return &auth_types.LoginResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	return &auth_types.LoginResponse{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+	}, nil
 }
 
 func (authService AuthService) Signup(reqBody auth_types.SignupReqBody) (*auth_types.SignupResponse, error) {
@@ -87,7 +77,15 @@ func (authService AuthService) Signup(reqBody auth_types.SignupReqBody) (*auth_t
 			"user with this email address already exist",
 		)
 	}
-	user := users_entities.NewUser(reqBody.Email, reqBody.Password)
+	hashedPasswored, hashedPasswordErr := authService.PasswordHashUtil.HashText(reqBody.Password)
+	if hashedPasswordErr != nil {
+		return nil, pkg_types.NewServerError(
+			"error in hashing password",
+			"AuthService.Signup.HashText",
+			hashedPasswordErr.Error(),
+		)
+	}
+	user := users_entities.NewUser(reqBody.Email, hashedPasswored)
 	if createUserErr := authService.UserRepository.CreateUser(user); createUserErr != nil {
 		return nil, pkg_types.NewServerError(
 			"error in creating user",
@@ -95,31 +93,14 @@ func (authService AuthService) Signup(reqBody auth_types.SignupReqBody) (*auth_t
 			createUserErr.Error(),
 		)
 	}
-	accessToken, accessTokenErr := pkg_utils.GenerateToken(user)
-	if accessTokenErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in generating access token",
-			"AuthService.Signup.GenerateToken",
-			accessTokenErr.Error(),
-		)
+	token, tokenErr := authService.TokenService.CreateToken(user)
+	if tokenErr != nil {
+		return nil, tokenErr
 	}
-	refreshToken, refreshTokenErr := pkg_utils.GenerateRefreshToken()
-	if refreshTokenErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in generating refresh token",
-			"AuthService.Signup.GenerateRefreshToken",
-			refreshTokenErr.Error(),
-		)
-	}
-	token := auth_entities.NewToken(accessToken, refreshToken, user)
-	if createTokenErr := authService.TokenRepository.CreateToken(token); createTokenErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in saving token on database",
-			"AuthService.Signup.CreateToken",
-			createTokenErr.Error(),
-		)
-	}
-	return &auth_types.SignupResponse{AccessToken: accessToken, RefreshToken: refreshToken}, nil
+	return &auth_types.SignupResponse{
+		AccessToken:  token.AccessToken,
+		RefreshToken: token.RefreshToken,
+	}, nil
 }
 
 func (authService AuthService) RefreshToken() {}

@@ -3,7 +3,7 @@ package auth_routers
 import (
 	"github.com/gorilla/mux"
 	auth_handlers "github.com/ladmakhi81/realtime-blogs/internal/auth/handlers"
-	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
+	pkg_decorators "github.com/ladmakhi81/realtime-blogs/pkg/decorators"
 )
 
 type AuthRouter struct {
@@ -20,26 +20,26 @@ func (authRouter AuthRouter) Setup() {
 
 	authApi.HandleFunc(
 		"/login",
-		pkg_utils.ErrorInterceptor(authRouter.AuthHandler.Login),
+		pkg_decorators.ApiErrorDecorator(authRouter.AuthHandler.Login),
 	).Methods("post")
 
 	authApi.HandleFunc(
 		"/signup",
-		pkg_utils.ErrorInterceptor(authRouter.AuthHandler.Signup),
+		pkg_decorators.ApiErrorDecorator(authRouter.AuthHandler.Signup),
 	).Methods("post")
 
 	authApi.HandleFunc(
 		"/refresh-token",
-		pkg_utils.ErrorInterceptor(authRouter.AuthHandler.RefreshToken),
+		pkg_decorators.ApiErrorDecorator(authRouter.AuthHandler.RefreshToken),
 	).Methods("patch")
 
 	authApi.HandleFunc(
 		"/forget-password",
-		pkg_utils.ErrorInterceptor(authRouter.AuthHandler.ForgetPassword),
+		pkg_decorators.ApiErrorDecorator(authRouter.AuthHandler.ForgetPassword),
 	).Methods("patch")
 
 	authApi.HandleFunc(
 		"/profile",
-		pkg_utils.ErrorInterceptor(authRouter.AuthHandler.Profile),
+		pkg_decorators.ApiErrorDecorator(authRouter.AuthHandler.Profile),
 	).Methods("get")
 }

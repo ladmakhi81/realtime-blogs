@@ -1,6 +1,6 @@
 package auth_contracts
 
-type PasswordHashContract interface {
+type PasswordHashServiceContract interface {
 	HashText(text string) (string, error)
 	CompareHashedText(text, hashedText string) bool
 }

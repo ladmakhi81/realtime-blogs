@@ -11,20 +11,17 @@ import (
 )
 
 type AuthService struct {
-	TokenRepository  auth_contracts.TokenRepositoryContract
 	UserRepository   users_contracts.UserRepositoryContract
 	TokenService     auth_contracts.TokenServiceContractor
-	PasswordHashUtil auth_contracts.PasswordHashContract
+	PasswordHashUtil auth_contracts.PasswordHashServiceContract
 }
 
 func NewAuthService(
-	tokenRepository auth_contracts.TokenRepositoryContract,
 	userRepository users_contracts.UserRepositoryContract,
 	tokenService auth_contracts.TokenServiceContractor,
-	passwordHashUtil auth_contracts.PasswordHashContract,
+	passwordHashUtil auth_contracts.PasswordHashServiceContract,
 ) AuthService {
 	return AuthService{
-		TokenRepository:  tokenRepository,
 		UserRepository:   userRepository,
 		TokenService:     tokenService,
 		PasswordHashUtil: passwordHashUtil,

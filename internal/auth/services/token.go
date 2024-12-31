@@ -5,15 +5,15 @@ import (
 	auth_entities "github.com/ladmakhi81/realtime-blogs/internal/auth/entities"
 	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
+	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
 )
 
 type TokenService struct {
 	TokenRepo auth_contracts.TokenRepositoryContract
-	TokenUtil auth_contracts.JwtTokenGeneratorContract
 }
 
-func NewTokenService(tokenRepo auth_contracts.TokenRepositoryContract, tokenUtil auth_contracts.JwtTokenGeneratorContract) TokenService {
-	return TokenService{TokenRepo: tokenRepo, TokenUtil: tokenUtil}
+func NewTokenService(tokenRepo auth_contracts.TokenRepositoryContract) TokenService {
+	return TokenService{TokenRepo: tokenRepo}
 }
 
 func (tokenService TokenService) CreateToken(user *users_entities.User) (*auth_entities.Token, error) {
@@ -24,7 +24,7 @@ func (tokenService TokenService) CreateToken(user *users_entities.User) (*auth_e
 			deleteTokenErr.Error(),
 		)
 	}
-	accessToken, accessTokenErr := tokenService.TokenUtil.GenerateToken(user)
+	accessToken, accessTokenErr := pkg_utils.GenerateToken(user.ID, user.Email)
 	if accessTokenErr != nil {
 		return nil, pkg_types.NewServerError(
 			"error in generating access token",
@@ -32,7 +32,7 @@ func (tokenService TokenService) CreateToken(user *users_entities.User) (*auth_e
 			accessTokenErr.Error(),
 		)
 	}
-	refreshToken, refreshTokenErr := tokenService.TokenUtil.GenerateRefreshToken()
+	refreshToken, refreshTokenErr := pkg_utils.GenerateRefreshToken()
 	if refreshTokenErr != nil {
 		return nil, pkg_types.NewServerError(
 			"error in generating refresh token",

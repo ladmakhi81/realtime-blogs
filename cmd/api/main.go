@@ -35,12 +35,11 @@ func main() {
 	tokenRepo := auth_repositories.NewTokenRepository(dbStorage)
 
 	// utils
-	tokenGeneratorUtil := auth_utils.NewJwtTokenGenerator()
 	passwordHashUtil := auth_utils.NewPasswordHashUtil()
 
 	// services
-	tokenService := auth_services.NewTokenService(tokenRepo, tokenGeneratorUtil)
-	authService := auth_services.NewAuthService(tokenRepo, userRepo, tokenService, passwordHashUtil)
+	tokenService := auth_services.NewTokenService(tokenRepo)
+	authService := auth_services.NewAuthService(userRepo, tokenService, passwordHashUtil)
 
 	// handlers
 	authHandler := auth_handlers.NewAuthHandler(&authService)

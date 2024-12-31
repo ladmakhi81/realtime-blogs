@@ -1,19 +1,18 @@
-package pkg_utils
+package pkg_decorators
 
 import (
 	"fmt"
 	"net/http"
 
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
+	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
 )
 
-type apiHttpHandler func(w http.ResponseWriter, r *http.Request) error
-
-func ErrorInterceptor(fn apiHttpHandler) http.HandlerFunc {
+func ApiErrorDecorator(fn pkg_types.ApiHttpHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := fn(w, r)
 		if serverErr, isServerErr := err.(*pkg_types.ServerError); isServerErr {
-			JsonResponse(
+			pkg_utils.JsonResponse(
 				w,
 				http.StatusInternalServerError,
 				map[string]string{"message": "internal server error"},
@@ -23,7 +22,7 @@ func ErrorInterceptor(fn apiHttpHandler) http.HandlerFunc {
 			return
 		}
 		if clientErr, isClientErr := err.(*pkg_types.ClientError); isClientErr {
-			JsonResponse(
+			pkg_utils.JsonResponse(
 				w,
 				clientErr.StatusCode,
 				map[string]string{"message": clientErr.Message},
@@ -31,7 +30,7 @@ func ErrorInterceptor(fn apiHttpHandler) http.HandlerFunc {
 			return
 		}
 		if validationErr, isValidationErr := err.(*pkg_types.ClientValidationError); isValidationErr {
-			JsonResponse(
+			pkg_utils.JsonResponse(
 				w,
 				validationErr.StatusCode,
 				map[string]any{"message": validationErr.Message, "errors": validationErr.Detail},

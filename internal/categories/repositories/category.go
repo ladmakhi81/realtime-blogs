@@ -20,11 +20,15 @@ func NewCategoryRepository(
 
 func (categoryRepository CategoryRepository) CreateCategory(category *categories_entities.Category) error {
 	command := `
-		INSERT INTO "_categories"
-		("title", "created_by_id") VALUES ($1, $2)
-		RETURNING "id", "title", "created_at", "updated_at";
+		INSERT INTO _categories
+		(title, created_by_id) VALUES ($1, $2)
+		RETURNING id, title, created_at, updated_at;
 	`
-	row := categoryRepository.Storage.DB.QueryRow(command, category.Title, category.CreatedBy.ID)
+	row := categoryRepository.Storage.DB.QueryRow(
+		command,
+		category.Title,
+		category.CreatedBy.ID,
+	)
 	scanErr := row.Scan(
 		&category.ID,
 		&category.Title,
@@ -38,17 +42,15 @@ func (categoryRepository CategoryRepository) UpdateCategoryId(category *categori
 	command := `
 		UPDATE _categories 
 		SET title = $1
-		WHERE id = $2
+		WHERE id = $2;
 	`
 	statement, pErr := categoryRepository.Storage.DB.Prepare(command)
 	if pErr != nil {
 		return pErr
 	}
-	_, eErr := statement.Exec(category.Title, category.ID)
-	if eErr != nil {
-		return eErr
-	}
-	return nil
+	defer statement.Close()
+	_, executionErr := statement.Exec(category.Title, category.ID)
+	return executionErr
 }
 
 func (categoryRepository CategoryRepository) DeleteCategoryById(id uint) error {
@@ -60,11 +62,8 @@ func (categoryRepository CategoryRepository) DeleteCategoryById(id uint) error {
 		return pErr
 	}
 	defer statement.Close()
-	_, eErr := statement.Exec(id)
-	if eErr != nil {
-		return eErr
-	}
-	return nil
+	_, executionErr := statement.Exec(id)
+	return executionErr
 }
 
 func (categoryRepository CategoryRepository) GetCategories(page, limit uint) (*[]categories_entities.Category, error) {
@@ -107,7 +106,7 @@ func (categoryRepository CategoryRepository) GetCategories(page, limit uint) (*[
 
 func (categoryRepository CategoryRepository) GetCategoryByTitle(title string) (*categories_entities.Category, error) {
 	command := `
-		SELECT "id", "title", "created_at", "updated_at" FROM "_categories" WHERE "title" = $1 LIMIT 1;
+		SELECT id, title, created_at, updated_at FROM _categories WHERE title = $1 LIMIT 1;
 	`
 	row := categoryRepository.Storage.DB.QueryRow(command, title)
 	category := new(categories_entities.Category)

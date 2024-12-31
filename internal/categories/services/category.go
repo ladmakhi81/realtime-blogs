@@ -20,7 +20,10 @@ func NewCategoryService(
 	categoryRepo categories_contracts.CategoryRepositoryContract,
 	userService users_contracts.UserServiceContract,
 ) CategoryService {
-	return CategoryService{CategoryRepo: categoryRepo, UserService: userService}
+	return CategoryService{
+		CategoryRepo: categoryRepo,
+		UserService:  userService,
+	}
 }
 
 func (categoryService CategoryService) CreateCategory(

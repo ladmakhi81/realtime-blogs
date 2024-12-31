@@ -6,48 +6,28 @@ import (
 	auth_contracts "github.com/ladmakhi81/realtime-blogs/internal/auth/contracts"
 	auth_types "github.com/ladmakhi81/realtime-blogs/internal/auth/types"
 	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
-	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
 )
 
 type AuthService struct {
-	UserRepository   users_contracts.UserRepositoryContract
-	TokenService     auth_contracts.TokenServiceContractor
-	PasswordHashUtil auth_contracts.PasswordHashServiceContract
+	TokenService auth_contracts.TokenServiceContractor
+	UserService  users_contracts.UserServiceContract
 }
 
 func NewAuthService(
-	userRepository users_contracts.UserRepositoryContract,
 	tokenService auth_contracts.TokenServiceContractor,
-	passwordHashUtil auth_contracts.PasswordHashServiceContract,
+	userService users_contracts.UserServiceContract,
 ) AuthService {
 	return AuthService{
-		UserRepository:   userRepository,
-		TokenService:     tokenService,
-		PasswordHashUtil: passwordHashUtil,
+		TokenService: tokenService,
+		UserService:  userService,
 	}
 }
 
 func (authService AuthService) Login(reqBody auth_types.LoginReqBody) (*auth_types.LoginResponse, error) {
-	user, emailErr := authService.UserRepository.FindByEmail(reqBody.Email)
-	if emailErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in finding user by email",
-			"AuthService.Login.FindByEmail",
-			emailErr.Error(),
-		)
-	}
-	if user == nil {
-		return nil, pkg_types.NewClientError(
-			http.StatusNotFound,
-			"unable to find user by this email address and password",
-		)
-	}
-	if isValid := authService.PasswordHashUtil.CompareHashedText(reqBody.Password, user.Password); !isValid {
-		return nil, pkg_types.NewClientError(
-			http.StatusNotFound,
-			"unable to find user by this email address and password",
-		)
+	user, findByEmailErr := authService.UserService.FindByEmailAndPassword(reqBody.Email, reqBody.Password)
+	if findByEmailErr != nil {
+		return nil, findByEmailErr
 	}
 	token, tokenErr := authService.TokenService.CreateToken(user)
 	if tokenErr != nil {
@@ -60,13 +40,9 @@ func (authService AuthService) Login(reqBody auth_types.LoginReqBody) (*auth_typ
 }
 
 func (authService AuthService) Signup(reqBody auth_types.SignupReqBody) (*auth_types.SignupResponse, error) {
-	duplicatedUser, duplicatedUserErr := authService.UserRepository.FindByEmail(reqBody.Email)
+	duplicatedUser, duplicatedUserErr := authService.UserService.FindByEmail(reqBody.Email)
 	if duplicatedUserErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in finding user by email address",
-			"AuthService.Signup.FindByEmail",
-			duplicatedUserErr.Error(),
-		)
+		return nil, duplicatedUserErr
 	}
 	if duplicatedUser != nil {
 		return nil, pkg_types.NewClientError(
@@ -74,21 +50,10 @@ func (authService AuthService) Signup(reqBody auth_types.SignupReqBody) (*auth_t
 			"user with this email address already exist",
 		)
 	}
-	hashedPasswored, hashedPasswordErr := authService.PasswordHashUtil.HashText(reqBody.Password)
-	if hashedPasswordErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in hashing password",
-			"AuthService.Signup.HashText",
-			hashedPasswordErr.Error(),
-		)
-	}
-	user := users_entities.NewUser(reqBody.Email, hashedPasswored)
-	if createUserErr := authService.UserRepository.CreateUser(user); createUserErr != nil {
-		return nil, pkg_types.NewServerError(
-			"error in creating user",
-			"AuthService.Signup.CreateUser",
-			createUserErr.Error(),
-		)
+
+	user, createUserErr := authService.UserService.CreateUser(reqBody.Email, reqBody.Password)
+	if createUserErr != nil {
+		return nil, createUserErr
 	}
 	token, tokenErr := authService.TokenService.CreateToken(user)
 	if tokenErr != nil {

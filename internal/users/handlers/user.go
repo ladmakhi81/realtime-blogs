@@ -11,9 +11,7 @@ type UserHandler struct {
 }
 
 func (userHandler UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	userHandler.UserService.ChangePassword()
 }
 
 func (userHandler UserHandler) EditUser(w http.ResponseWriter, r *http.Request) {
-	userHandler.UserService.EditUser()
 }

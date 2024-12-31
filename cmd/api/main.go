@@ -11,8 +11,8 @@ import (
 	auth_repositories "github.com/ladmakhi81/realtime-blogs/internal/auth/repositories"
 	auth_routers "github.com/ladmakhi81/realtime-blogs/internal/auth/routers"
 	auth_services "github.com/ladmakhi81/realtime-blogs/internal/auth/services"
-	auth_utils "github.com/ladmakhi81/realtime-blogs/internal/auth/utils"
 	users_repositories "github.com/ladmakhi81/realtime-blogs/internal/users/repositories"
+	users_services "github.com/ladmakhi81/realtime-blogs/internal/users/services"
 	pkg_storage "github.com/ladmakhi81/realtime-blogs/pkg/storage"
 )
 
@@ -34,12 +34,11 @@ func main() {
 	userRepo := users_repositories.NewUserRepository(dbStorage)
 	tokenRepo := auth_repositories.NewTokenRepository(dbStorage)
 
-	// utils
-	passwordHashUtil := auth_utils.NewPasswordHashUtil()
-
 	// services
+	passwordHashService := users_services.NewPasswordHashService()
 	tokenService := auth_services.NewTokenService(tokenRepo)
-	authService := auth_services.NewAuthService(userRepo, tokenService, passwordHashUtil)
+	userService := users_services.NewUserService(userRepo, passwordHashService)
+	authService := auth_services.NewAuthService(tokenService, userService)
 
 	// handlers
 	authHandler := auth_handlers.NewAuthHandler(&authService)

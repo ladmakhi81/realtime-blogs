@@ -36,18 +36,31 @@ func (categoryRepository CategoryRepository) CreateCategory(category *categories
 
 func (categoryRepository CategoryRepository) UpdateCategoryId() {}
 
-func (categoryRepository CategoryRepository) DeleteCategoryById() {}
+func (categoryRepository CategoryRepository) DeleteCategoryById(id uint) error {
+	command := `
+		DELETE FROM _categories WHERE id = $1
+	`
+	statement, pErr := categoryRepository.Storage.DB.Prepare(command)
+	if pErr != nil {
+		return pErr
+	}
+	defer statement.Close()
+	_, eErr := statement.Exec(id)
+	if eErr != nil {
+		return eErr
+	}
+	return nil
+}
 
 func (categoryRepository CategoryRepository) GetCategories(page, limit uint) (*[]categories_entities.Category, error) {
 	command := `
 		SELECT 
-			c.id, c.title, c.created_at, c.updated_at, 
-			u.id AS created_by_id, u.email AS created_by_email, u.created_at AS created_by_created_at, u.updated_at AS created_by_updated_at
+			c.id, c.title, c.created_at, c.updated_at,
+			u.id, u.email, u.created_at, u.updated_at
 		FROM _categories c
 		INNER JOIN _users u ON u.id = c.created_by_id
-		ORDER BY c.id DESC 
+		ORDER BY c.id DESC
 		LIMIT $1 OFFSET $2
-
 	`
 	rows, queryErr := categoryRepository.Storage.DB.Query(command, limit, page*limit)
 	defer rows.Close()
@@ -96,5 +109,40 @@ func (categoryRepository CategoryRepository) GetCategoryByTitle(title string) (*
 			return nil, scanErr
 		}
 	}
+	return category, nil
+}
+
+func (categoryRepository CategoryRepository) GetCategoryById(id uint) (*categories_entities.Category, error) {
+	command := `
+		SELECT 
+			c.id, c.title, c.created_at, c.updated_at,
+			u.id, u.email, u.created_at, u.updated_at
+		FROM _categories c 
+		INNER JOIN _users u ON u.id = c.created_by_id
+		WHERE c.id = $1 
+		LIMIT 1
+	`
+	row := categoryRepository.Storage.DB.QueryRow(command, id)
+	category := new(categories_entities.Category)
+	user := new(users_entities.User)
+
+	scanErr := row.Scan(
+		&category.ID,
+		&category.Title,
+		&category.CreatedAt,
+		&category.UpdatedAt,
+		&user.ID,
+		&user.Email,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if scanErr != nil {
+		if scanErr == sql.ErrNoRows {
+			return nil, nil
+		} else {
+			return nil, scanErr
+		}
+	}
+	category.CreatedBy = user
 	return category, nil
 }

@@ -60,3 +60,34 @@ func (categoryService CategoryService) GetCategories(page, limit uint) (*[]categ
 	}
 	return categories, nil
 }
+
+func (categoryService CategoryService) GetCategoryById(id uint) (*categories_entities.Category, error) {
+	category, categoryErr := categoryService.CategoryRepo.GetCategoryById(id)
+	if categoryErr != nil {
+		return nil, pkg_types.NewServerError(
+			"error in get category from database",
+			"CategoryService.GetCategoryById",
+			categoryErr.Error(),
+		)
+	}
+	if category == nil {
+		return nil, pkg_types.NewClientError(http.StatusNotFound, "category not found by this id")
+	}
+	return category, nil
+}
+
+func (categoryService CategoryService) DeleteCategoryById(id uint) error {
+	category, categoryErr := categoryService.GetCategoryById(id)
+	if categoryErr != nil {
+		return categoryErr
+	}
+	deleteCategoryErr := categoryService.CategoryRepo.DeleteCategoryById(category.ID)
+	if deleteCategoryErr != nil {
+		return pkg_types.NewServerError(
+			"error in deleting category from database",
+			"CategoryService.DeleteCategoryById",
+			deleteCategoryErr.Error(),
+		)
+	}
+	return nil
+}

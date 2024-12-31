@@ -13,4 +13,6 @@ type CategoryServiceContract interface {
 	) (*categories_entities.Category, error)
 
 	GetCategories(page, limit uint) (*[]categories_entities.Category, error)
+	GetCategoryById(id uint) (*categories_entities.Category, error)
+	DeleteCategoryById(id uint) error
 }

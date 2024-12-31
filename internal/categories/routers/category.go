@@ -1,6 +1,8 @@
 package categories_routers
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	categories_handlers "github.com/ladmakhi81/realtime-blogs/internal/categories/handlers"
 	pkg_decorators "github.com/ladmakhi81/realtime-blogs/pkg/decorators"
@@ -31,17 +33,21 @@ func (categoryRouter CategoryRouter) Setup() {
 				categoryRouter.CategoryHandler.CreateCategory,
 			),
 		),
-	).Methods("post")
+	).Methods(http.MethodPost)
 
 	categoryApi.HandleFunc(
 		"/{id}",
-		categoryRouter.CategoryHandler.DeleteCategoryById,
-	).Methods("delete")
+		pkg_decorators.ApiErrorDecorator(
+			pkg_decorators.ApiAuthDecorator(
+				categoryRouter.CategoryHandler.DeleteCategoryById,
+			),
+		),
+	).Methods(http.MethodDelete)
 
 	categoryApi.HandleFunc(
 		"/{id}",
 		categoryRouter.CategoryHandler.UpdateCategoryById,
-	).Methods("patch")
+	).Methods(http.MethodPatch)
 
 	categoryApi.HandleFunc(
 		"",
@@ -50,5 +56,5 @@ func (categoryRouter CategoryRouter) Setup() {
 				categoryRouter.CategoryHandler.GetCategories,
 			),
 		),
-	).Methods("get")
+	).Methods(http.MethodGet)
 }

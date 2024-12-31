@@ -3,7 +3,9 @@ package categories_handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	categories_contracts "github.com/ladmakhi81/realtime-blogs/internal/categories/contracts"
 	categories_types "github.com/ladmakhi81/realtime-blogs/internal/categories/types"
 	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
@@ -51,7 +53,21 @@ func (categoryHandler CategoryHandler) CreateCategory(w http.ResponseWriter, r *
 	return nil
 }
 
-func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) {
+func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) error {
+	params := mux.Vars(r)
+	categoryIdParam := params["id"]
+	var categoryId uint
+	if parsedId, parseErr := strconv.Atoi(categoryIdParam); parseErr != nil {
+		return pkg_types.NewClientError(http.StatusBadRequest, "invalid category id")
+	} else {
+		categoryId = uint(parsedId)
+	}
+	deleteCategoryErr := categoryHandler.CategoryService.DeleteCategoryById(categoryId)
+	if deleteCategoryErr != nil {
+		return deleteCategoryErr
+	}
+	pkg_utils.JsonResponse(w, http.StatusOK, nil)
+	return nil
 }
 
 func (categoryHandler CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +85,7 @@ func (categoryHandler CategoryHandler) GetCategories(w http.ResponseWriter, r *h
 	pkg_utils.JsonResponse(
 		w,
 		http.StatusOK,
-		categories_types.GetCategoriesList{Categories: categories},
+		categories_types.GetCategoriesListResponse{Categories: categories},
 	)
 	return nil
 }

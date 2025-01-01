@@ -11,6 +11,10 @@ import (
 	auth_repositories "github.com/ladmakhi81/realtime-blogs/internal/auth/repositories"
 	auth_routers "github.com/ladmakhi81/realtime-blogs/internal/auth/routers"
 	auth_services "github.com/ladmakhi81/realtime-blogs/internal/auth/services"
+	blogs_handlers "github.com/ladmakhi81/realtime-blogs/internal/blogs/handlers"
+	blogs_repositories "github.com/ladmakhi81/realtime-blogs/internal/blogs/repositories"
+	blogs_routers "github.com/ladmakhi81/realtime-blogs/internal/blogs/routers"
+	blogs_services "github.com/ladmakhi81/realtime-blogs/internal/blogs/services"
 	categories_handlers "github.com/ladmakhi81/realtime-blogs/internal/categories/handlers"
 	categories_repositories "github.com/ladmakhi81/realtime-blogs/internal/categories/repositories"
 	categories_routers "github.com/ladmakhi81/realtime-blogs/internal/categories/routers"
@@ -38,6 +42,7 @@ func main() {
 	userRepo := users_repositories.NewUserRepository(dbStorage)
 	tokenRepo := auth_repositories.NewTokenRepository(dbStorage)
 	categoryRepo := categories_repositories.NewCategoryRepository(dbStorage)
+	blogRepo := blogs_repositories.NewBlogRepository(dbStorage)
 
 	// services
 	passwordHashService := users_services.NewPasswordHashService()
@@ -45,17 +50,21 @@ func main() {
 	userService := users_services.NewUserService(userRepo, passwordHashService)
 	authService := auth_services.NewAuthService(tokenService, userService)
 	categoryService := categories_services.NewCategoryService(categoryRepo, userService)
+	blogService := blogs_services.NewBlogService(blogRepo, categoryService, userService)
 
 	// handlers
 	authHandler := auth_handlers.NewAuthHandler(authService)
 	categoryHandler := categories_handlers.NewCategoryHandler(categoryService, userService)
+	blogHandler := blogs_handlers.NewBlogHandler(blogService)
 
 	// routers
 	authRouter := auth_routers.NewAuthRouter(apiRouter, authHandler)
 	categoryRouter := categories_routers.NewCategoryRouter(apiRouter, categoryHandler)
+	blogRouter := blogs_routers.NewBlogRouter(apiRouter, blogHandler)
 
 	authRouter.Setup()
 	categoryRouter.Setup()
+	blogRouter.Setup()
 
 	listenErr := http.ListenAndServe(":8080", apiRouter)
 

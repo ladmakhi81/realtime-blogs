@@ -14,3 +14,19 @@ type Blog struct {
 	Tags      []string                     `json:"tags"`
 	pkg_entities.BaseEntity
 }
+
+func NewBlog(
+	title,
+	content string,
+	createdBy *users_entities.User,
+	category *categories_entities.Category,
+	tags []string,
+) *Blog {
+	return &Blog{
+		Title:     title,
+		Content:   content,
+		CreatedBy: *createdBy,
+		Category:  *category,
+		Tags:      tags,
+	}
+}

@@ -1,15 +1,54 @@
 package blogs_services
 
-import blogs_contracts "github.com/ladmakhi81/realtime-blogs/internal/blogs/contracts"
+import (
+	blogs_contracts "github.com/ladmakhi81/realtime-blogs/internal/blogs/contracts"
+	blogs_entities "github.com/ladmakhi81/realtime-blogs/internal/blogs/entities"
+	blogs_types "github.com/ladmakhi81/realtime-blogs/internal/blogs/types"
+	categories_contracts "github.com/ladmakhi81/realtime-blogs/internal/categories/contracts"
+	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
+	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
+)
 
 type BlogService struct {
-	BlogRepository blogs_contracts.BlogRepositoryContract
+	BlogRepository  blogs_contracts.BlogRepositoryContract
+	CategoryService categories_contracts.CategoryServiceContract
+	UserService     users_contracts.UserServiceContract
 }
 
-func (blogService BlogService) CreateBlog() {}
+func NewBlogService(
+	blogRepo blogs_contracts.BlogRepositoryContract,
+	categoryService categories_contracts.CategoryServiceContract,
+	userService users_contracts.UserServiceContract,
+) BlogService {
+	return BlogService{
+		BlogRepository:  blogRepo,
+		CategoryService: categoryService,
+		UserService:     userService,
+	}
+}
 
-func (blogService BlogService) DeleteBlogById() {}
-
-func (blogService BlogService) GetBlogs() {}
-
-func (blogService BlogService) GetBlogById() {}
+func (blogService BlogService) CreateBlog(reqBody blogs_types.CreateBlogReqBody, creatorId uint) (*blogs_entities.Blog, error) {
+	category, findCategoryErr := blogService.CategoryService.GetCategoryById(reqBody.CategoryId)
+	if findCategoryErr != nil {
+		return nil, findCategoryErr
+	}
+	authUser, authUserErr := blogService.UserService.FindUserById(creatorId)
+	if authUserErr != nil {
+		return nil, authUserErr
+	}
+	blog := blogs_entities.NewBlog(
+		reqBody.Title,
+		reqBody.Content,
+		authUser,
+		category,
+		reqBody.Tags,
+	)
+	if createBlogErr := blogService.BlogRepository.CreateBlog(blog); createBlogErr != nil {
+		return nil, pkg_types.NewServerError(
+			"error in creating blog",
+			"BlogService.CreateBlog",
+			createBlogErr.Error(),
+		)
+	}
+	return blog, nil
+}

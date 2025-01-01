@@ -6,18 +6,17 @@ import (
 	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
 	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
+	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
 )
 
 type UserService struct {
-	UserRepo            users_contracts.UserRepositoryContract
-	PasswordHashService users_contracts.PasswordHashServiceContract
+	UserRepo users_contracts.UserRepositoryContract
 }
 
 func NewUserService(
 	userRepo users_contracts.UserRepositoryContract,
-	passwordHashService users_contracts.PasswordHashServiceContract,
 ) UserService {
-	return UserService{UserRepo: userRepo, PasswordHashService: passwordHashService}
+	return UserService{UserRepo: userRepo}
 }
 
 func (userService UserService) FindByEmail(email string) (*users_entities.User, error) {
@@ -33,7 +32,7 @@ func (userService UserService) FindByEmail(email string) (*users_entities.User, 
 }
 
 func (userService UserService) CreateUser(email, password string) (*users_entities.User, error) {
-	hashedPasswored, hashedPasswordErr := userService.PasswordHashService.HashText(password)
+	hashedPasswored, hashedPasswordErr := pkg_utils.HashText(password)
 	if hashedPasswordErr != nil {
 		return nil, pkg_types.NewServerError(
 			"error in hashing password",
@@ -63,7 +62,7 @@ func (userService UserService) FindByEmailAndPassword(email string, password str
 			"unable to find user by this email address and password",
 		)
 	}
-	if isValid := userService.PasswordHashService.CompareHashedText(password, user.Password); !isValid {
+	if isValid := pkg_utils.CompareHashedText(password, user.Password); !isValid {
 		return nil, pkg_types.NewClientError(
 			http.StatusNotFound,
 			"unable to find user by this email address and password",

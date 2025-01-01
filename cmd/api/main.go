@@ -45,9 +45,8 @@ func main() {
 	blogRepo := blogs_repositories.NewBlogRepository(dbStorage)
 
 	// services
-	passwordHashService := users_services.NewPasswordHashService()
 	tokenService := auth_services.NewTokenService(tokenRepo)
-	userService := users_services.NewUserService(userRepo, passwordHashService)
+	userService := users_services.NewUserService(userRepo)
 	authService := auth_services.NewAuthService(tokenService, userService)
 	categoryService := categories_services.NewCategoryService(categoryRepo, userService)
 	blogService := blogs_services.NewBlogService(blogRepo, categoryService, userService)

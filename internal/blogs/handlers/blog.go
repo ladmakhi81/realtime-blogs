@@ -84,15 +84,14 @@ func (blogHandler BlogHandler) GetBlogs(w http.ResponseWriter, r *http.Request) 
 	if findBlogsErr != nil {
 		return findBlogsErr
 	}
-
 	pkg_utils.JsonResponse(
 		w,
 		http.StatusOK,
-		blogs_types.NewGetBlogsListResponse(
-			blogs,
-			page,
+		pkg_types.NewDatasourcePagination(
+			*blogs,
 			uint(math.Ceil(float64(blogsCount)/float64(limit))),
 			blogsCount,
+			page,
 		),
 	)
 	return nil

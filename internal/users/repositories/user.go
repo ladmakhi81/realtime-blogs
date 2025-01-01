@@ -18,10 +18,10 @@ func NewUserRepository(storage pkg_storage.Storage) UserRepository {
 func (userRepo UserRepository) CreateUser(user *users_entities.User) error {
 	command := `
 		INSERT INTO 
-		"_users"
-		("email", "password") VALUES ($1, $2)
-		RETURNING "id", "created_at", "updated_at", 
-		"email", "password", "profile_url", "first_name", "last_name";
+		_users
+		(email, password) VALUES ($1, $2)
+		RETURNING id, created_at, updated_at, 
+		email, password, profile_url, first_name, last_name;
 	`
 	row := userRepo.Storage.DB.QueryRow(command, user.Email, user.Password)
 	scanErr := row.Scan(
@@ -42,7 +42,7 @@ func (userRepo UserRepository) CreateUser(user *users_entities.User) error {
 
 func (userRepo UserRepository) FindByEmail(email string) (*users_entities.User, error) {
 	command := `
-		SELECT * FROM "_users" WHERE "email"=$1 LIMIT 1;
+		SELECT * FROM _users WHERE email=$1 LIMIT 1;
 	`
 	user := new(users_entities.User)
 	row := userRepo.Storage.DB.QueryRow(command, email)
@@ -68,7 +68,7 @@ func (userRepo UserRepository) FindByEmail(email string) (*users_entities.User, 
 
 func (userRepo UserRepository) FindUserById(id uint) (*users_entities.User, error) {
 	command := `
-		SELECT * FROM "_users" WHERE "id" = $1 LIMIT 1;
+		SELECT * FROM _users WHERE id = $1 LIMIT 1;
 	`
 	user := new(users_entities.User)
 	row := userRepo.Storage.DB.QueryRow(command, id)
@@ -86,4 +86,28 @@ func (userRepo UserRepository) FindUserById(id uint) (*users_entities.User, erro
 		return nil, scanErr
 	}
 	return user, nil
+}
+
+func (userRepo UserRepository) UpdateUserById(user *users_entities.User) error {
+	command := `
+		UPDATE _users SET
+		first_name = $1,
+		last_name = $2,
+		profile_url = $3
+		WHERE id = $4
+	`
+	statement, prepareErr := userRepo.Storage.DB.Prepare(command)
+	if prepareErr != nil {
+		return prepareErr
+	}
+	defer statement.Close()
+	if _, executeErr := statement.Exec(
+		user.FirstName,
+		user.LastName,
+		user.ProfileURL,
+		user.ID,
+	); executeErr != nil {
+		return executeErr
+	}
+	return nil
 }

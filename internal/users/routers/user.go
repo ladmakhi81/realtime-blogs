@@ -1,8 +1,11 @@
 package users_routers
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	users_handlers "github.com/ladmakhi81/realtime-blogs/internal/users/handlers"
+	pkg_decorators "github.com/ladmakhi81/realtime-blogs/pkg/decorators"
 )
 
 type UserRouter struct {
@@ -10,16 +13,25 @@ type UserRouter struct {
 	UserHandler users_handlers.UserHandler
 }
 
+func NewUserRouter(
+	apiRouter *mux.Router,
+	userHandler users_handlers.UserHandler,
+) UserRouter {
+	return UserRouter{
+		ApiRouter:   apiRouter,
+		UserHandler: userHandler,
+	}
+}
+
 func (userRouter *UserRouter) Setup() {
 	userApi := userRouter.ApiRouter.PathPrefix("/users").Subrouter()
 
 	userApi.HandleFunc(
-		"/change-password",
-		userRouter.UserHandler.ChangePassword,
-	).Methods("patch")
-
-	userApi.HandleFunc(
 		"/edit-user",
-		userRouter.UserHandler.EditUser,
-	).Methods("patch")
+		pkg_decorators.ApiErrorDecorator(
+			pkg_decorators.ApiAuthDecorator(
+				userRouter.UserHandler.EditUser,
+			),
+		),
+	).Methods(http.MethodPatch)
 }

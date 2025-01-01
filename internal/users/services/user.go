@@ -5,6 +5,7 @@ import (
 
 	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
 	users_entities "github.com/ladmakhi81/realtime-blogs/internal/users/entities"
+	users_types "github.com/ladmakhi81/realtime-blogs/internal/users/types"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
 	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
 )
@@ -81,4 +82,28 @@ func (userService UserService) FindUserById(id uint) (*users_entities.User, erro
 		)
 	}
 	return user, nil
+}
+
+func (userService UserService) UpdateUser(authUserId uint, reqBody users_types.EditUserReqBody) error {
+	user, findUserErr := userService.FindUserById(authUserId)
+	if findUserErr != nil {
+		return findUserErr
+	}
+	if reqBody.FirstName != nil {
+		user.FirstName = *reqBody.FirstName
+	}
+	if reqBody.LastName != nil {
+		user.LastName = *reqBody.LastName
+	}
+	if reqBody.ProfileURL != nil {
+		user.ProfileURL = *reqBody.ProfileURL
+	}
+	if updateErr := userService.UserRepo.UpdateUserById(user); updateErr != nil {
+		return pkg_types.NewServerError(
+			"error in update user by id",
+			"UserService.UpdateUser.UpdateUserById",
+			updateErr.Error(),
+		)
+	}
+	return nil
 }

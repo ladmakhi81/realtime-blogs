@@ -19,7 +19,9 @@ import (
 	categories_repositories "github.com/ladmakhi81/realtime-blogs/internal/categories/repositories"
 	categories_routers "github.com/ladmakhi81/realtime-blogs/internal/categories/routers"
 	categories_services "github.com/ladmakhi81/realtime-blogs/internal/categories/services"
+	users_handlers "github.com/ladmakhi81/realtime-blogs/internal/users/handlers"
 	users_repositories "github.com/ladmakhi81/realtime-blogs/internal/users/repositories"
+	users_routers "github.com/ladmakhi81/realtime-blogs/internal/users/routers"
 	users_services "github.com/ladmakhi81/realtime-blogs/internal/users/services"
 	pkg_storage "github.com/ladmakhi81/realtime-blogs/pkg/storage"
 )
@@ -55,15 +57,18 @@ func main() {
 	authHandler := auth_handlers.NewAuthHandler(authService)
 	categoryHandler := categories_handlers.NewCategoryHandler(categoryService, userService)
 	blogHandler := blogs_handlers.NewBlogHandler(blogService)
+	userHandler := users_handlers.NewUserHandler(userService)
 
 	// routers
 	authRouter := auth_routers.NewAuthRouter(apiRouter, authHandler)
 	categoryRouter := categories_routers.NewCategoryRouter(apiRouter, categoryHandler)
 	blogRouter := blogs_routers.NewBlogRouter(apiRouter, blogHandler)
+	userRouter := users_routers.NewUserRouter(apiRouter, userHandler)
 
 	authRouter.Setup()
 	categoryRouter.Setup()
 	blogRouter.Setup()
+	userRouter.Setup()
 
 	listenErr := http.ListenAndServe(":8080", apiRouter)
 

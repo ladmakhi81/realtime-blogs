@@ -3,9 +3,7 @@ package categories_handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
-	"github.com/gorilla/mux"
 	categories_contracts "github.com/ladmakhi81/realtime-blogs/internal/categories/contracts"
 	categories_types "github.com/ladmakhi81/realtime-blogs/internal/categories/types"
 	users_contracts "github.com/ladmakhi81/realtime-blogs/internal/users/contracts"
@@ -55,13 +53,9 @@ func (categoryHandler CategoryHandler) CreateCategory(w http.ResponseWriter, r *
 
 func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter, r *http.Request) error {
 	authUserId := r.Context().Value("AuthUser").(*pkg_types.UserAuthClaim).ID
-	params := mux.Vars(r)
-	categoryIdParam := params["id"]
-	var categoryId uint
-	if parsedId, parseErr := strconv.Atoi(categoryIdParam); parseErr != nil {
-		return pkg_types.NewClientError(http.StatusBadRequest, "invalid category id")
-	} else {
-		categoryId = uint(parsedId)
+	var categoryId, parseErr = pkg_utils.ExtractNumericRouteParam(r, "id")
+	if parseErr != nil {
+		return parseErr
 	}
 	deleteCategoryErr := categoryHandler.CategoryService.DeleteCategoryById(categoryId, authUserId)
 	if deleteCategoryErr != nil {
@@ -73,13 +67,9 @@ func (categoryHandler CategoryHandler) DeleteCategoryById(w http.ResponseWriter,
 
 func (categoryHandler CategoryHandler) UpdateCategoryById(w http.ResponseWriter, r *http.Request) error {
 	authUserId := r.Context().Value("AuthUser").(*pkg_types.UserAuthClaim).ID
-	params := mux.Vars(r)
-	paramId := params["id"]
-	var categoryId uint
-	if parsedId, parsedErr := strconv.Atoi(paramId); parsedErr != nil {
-		return pkg_types.NewClientError(http.StatusBadRequest, "invalid category id")
-	} else {
-		categoryId = uint(parsedId)
+	var categoryId, parseErr = pkg_utils.ExtractNumericRouteParam(r, "id")
+	if parseErr != nil {
+		return parseErr
 	}
 	reqBody := new(categories_types.ModifyCategoryReqBody)
 	if decodeErr := json.NewDecoder(r.Body).Decode(reqBody); decodeErr != nil {

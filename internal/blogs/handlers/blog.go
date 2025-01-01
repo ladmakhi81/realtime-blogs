@@ -3,9 +3,7 @@ package blogs_handlers
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
-	"github.com/gorilla/mux"
 	blogs_contracts "github.com/ladmakhi81/realtime-blogs/internal/blogs/contracts"
 	blogs_types "github.com/ladmakhi81/realtime-blogs/internal/blogs/types"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
@@ -50,17 +48,10 @@ func (blogHandler BlogHandler) CreateBlog(w http.ResponseWriter, r *http.Request
 }
 
 func (blogHandler BlogHandler) DeleteBlogById(w http.ResponseWriter, r *http.Request) error {
-	params := mux.Vars(r)
-	idParam := params["id"]
 	authUserId := r.Context().Value("AuthUser").(*pkg_types.UserAuthClaim).ID
-	var id uint
-	if parsedId, parsedErr := strconv.Atoi(idParam); parsedErr != nil {
-		return pkg_types.NewClientError(
-			http.StatusBadRequest,
-			"invalid blog id",
-		)
-	} else {
-		id = uint(parsedId)
+	var id, parseErr = pkg_utils.ExtractNumericRouteParam(r, "id")
+	if parseErr != nil {
+		return parseErr
 	}
 	err := blogHandler.BlogService.DeleteBlogById(id, authUserId)
 	if err != nil {
@@ -97,16 +88,9 @@ func (blogHandler BlogHandler) GetBlogs(w http.ResponseWriter, r *http.Request) 
 }
 
 func (blogHandler BlogHandler) GetBlogById(w http.ResponseWriter, r *http.Request) error {
-	params := mux.Vars(r)
-	idParam := params["id"]
-	var id uint
-	if parsedId, parsedErr := strconv.Atoi(idParam); parsedErr != nil {
-		return pkg_types.NewClientError(
-			http.StatusBadRequest,
-			"invalid blog id",
-		)
-	} else {
-		id = uint(parsedId)
+	var id, parseErr = pkg_utils.ExtractNumericRouteParam(r, "id")
+	if parseErr != nil {
+		return parseErr
 	}
 	blog, err := blogHandler.BlogService.GetBlogById(id)
 	if err != nil {

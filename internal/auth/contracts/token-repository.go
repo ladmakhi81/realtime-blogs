@@ -5,5 +5,4 @@ import auth_entities "github.com/ladmakhi81/realtime-blogs/internal/auth/entitie
 type TokenRepositoryContract interface {
 	CreateToken(token *auth_entities.Token) error
 	DeleteTokensByUserId(userID uint) error
-	GetTokenByUserId()
 }

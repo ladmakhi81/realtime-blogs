@@ -14,7 +14,9 @@ type AuthHandler struct {
 	AuthService auth_contracts.AuthServiceContract
 }
 
-func NewAuthHandler(authService auth_contracts.AuthServiceContract) AuthHandler {
+func NewAuthHandler(
+	authService auth_contracts.AuthServiceContract,
+) AuthHandler {
 	return AuthHandler{AuthService: authService}
 }
 
@@ -51,20 +53,5 @@ func (authHandler AuthHandler) Signup(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 	pkg_utils.JsonResponse(w, http.StatusCreated, res)
-	return nil
-}
-
-func (authHandler AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) error {
-	authHandler.AuthService.RefreshToken()
-	return nil
-}
-
-func (authHandler AuthHandler) ForgetPassword(w http.ResponseWriter, r *http.Request) error {
-	authHandler.AuthService.ForgetPassword()
-	return nil
-}
-
-func (authHandler AuthHandler) Profile(w http.ResponseWriter, r *http.Request) error {
-	authHandler.AuthService.Profile()
 	return nil
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
@@ -50,5 +51,11 @@ func VerifyAccessToken(token string) (*pkg_types.UserAuthClaim, error) {
 		)
 	}
 	claims := decodedToken.Claims.(*pkg_types.UserAuthClaim)
+	if isExpired := claims.ExpiresAt.Time.Before(time.Now()); isExpired {
+		return nil, pkg_types.NewClientError(
+			http.StatusUnauthorized,
+			"Unauthorized",
+		)
+	}
 	return claims, nil
 }

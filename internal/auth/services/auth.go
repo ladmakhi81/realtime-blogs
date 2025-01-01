@@ -64,9 +64,3 @@ func (authService AuthService) Signup(reqBody auth_types.SignupReqBody) (*auth_t
 		RefreshToken: token.RefreshToken,
 	}, nil
 }
-
-func (authService AuthService) RefreshToken() {}
-
-func (authService AuthService) ForgetPassword() {}
-
-func (authService AuthService) Profile() {}

@@ -48,5 +48,3 @@ func (tokenRepo TokenRepository) DeleteTokensByUserId(userID uint) error {
 	}
 	return nil
 }
-
-func (tokenRepo TokenRepository) GetTokenByUserId() {}

@@ -9,4 +9,5 @@ type CategoryRepositoryContract interface {
 	GetCategories(page, limit uint) (*[]categories_entities.Category, error)
 	GetCategoryByTitle(title string) (*categories_entities.Category, error)
 	GetCategoryById(id uint) (*categories_entities.Category, error)
+	GetCategoriesCount() (uint, error)
 }

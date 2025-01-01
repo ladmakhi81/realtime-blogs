@@ -2,7 +2,6 @@ package blogs_handlers
 
 import (
 	"encoding/json"
-	"math"
 	"net/http"
 	"strconv"
 
@@ -89,7 +88,7 @@ func (blogHandler BlogHandler) GetBlogs(w http.ResponseWriter, r *http.Request) 
 		http.StatusOK,
 		pkg_types.NewDatasourcePagination(
 			*blogs,
-			uint(math.Ceil(float64(blogsCount)/float64(limit))),
+			pkg_utils.CalcTotalPaginationPage(limit, blogsCount),
 			blogsCount,
 			page,
 		),

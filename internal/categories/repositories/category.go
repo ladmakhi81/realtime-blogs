@@ -160,3 +160,18 @@ func (categoryRepository CategoryRepository) GetCategoryById(id uint) (*categori
 	category.CreatedBy = user
 	return category, nil
 }
+
+func (categoryRepository CategoryRepository) GetCategoriesCount() (uint, error) {
+	command := `
+		SELECT COUNT(*) as categories_count FROM _categories
+	`
+	var count uint
+	row := categoryRepository.Storage.DB.QueryRow(
+		command,
+	)
+	scanErr := row.Scan(&count)
+	if scanErr != nil {
+		return 0, scanErr
+	}
+	return count, nil
+}

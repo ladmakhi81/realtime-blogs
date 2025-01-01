@@ -104,14 +104,19 @@ func (categoryHandler CategoryHandler) GetCategories(w http.ResponseWriter, r *h
 	if paginationParseErr != nil {
 		return paginationParseErr
 	}
-	categories, err := categoryHandler.CategoryService.GetCategories(page, limit)
+	categories, categoriesCount, err := categoryHandler.CategoryService.GetCategories(page, limit)
 	if err != nil {
 		return err
 	}
 	pkg_utils.JsonResponse(
 		w,
 		http.StatusOK,
-		categories_types.GetCategoriesListResponse{Categories: categories},
+		pkg_types.NewDatasourcePagination(
+			*categories,
+			pkg_utils.CalcTotalPaginationPage(limit, categoriesCount),
+			categoriesCount,
+			page,
+		),
 	)
 	return nil
 }

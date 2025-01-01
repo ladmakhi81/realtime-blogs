@@ -12,7 +12,7 @@ type CategoryServiceContract interface {
 		creator *users_entities.User,
 	) (*categories_entities.Category, error)
 
-	GetCategories(page, limit uint) (*[]categories_entities.Category, error)
+	GetCategories(page, limit uint) (*[]categories_entities.Category, uint, error)
 	GetCategoryById(id uint) (*categories_entities.Category, error)
 	DeleteCategoryById(id uint, creatorId uint) error
 	UpdateCategoryById(id uint, creatorId uint, reqBody categories_types.ModifyCategoryReqBody) error

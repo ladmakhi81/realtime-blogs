@@ -55,16 +55,24 @@ func (categoryService CategoryService) CreateCategory(
 	return category, nil
 }
 
-func (categoryService CategoryService) GetCategories(page, limit uint) (*[]categories_entities.Category, error) {
+func (categoryService CategoryService) GetCategories(page, limit uint) (*[]categories_entities.Category, uint, error) {
 	categories, categoriesErr := categoryService.CategoryRepo.GetCategories(page, limit)
 	if categoriesErr != nil {
-		return nil, pkg_types.NewServerError(
+		return nil, 0, pkg_types.NewServerError(
 			"unable to fetch categories from database",
 			"CategoryService.GetCategories",
 			categoriesErr.Error(),
 		)
 	}
-	return categories, nil
+	categoriesCount, categoriesCountErr := categoryService.CategoryRepo.GetCategoriesCount()
+	if categoriesCountErr != nil {
+		return nil, 0, pkg_types.NewServerError(
+			"error in returning count of categories",
+			"CategoryService.GetCategories.GetCategoriesCount",
+			categoriesCountErr.Error(),
+		)
+	}
+	return categories, categoriesCount, nil
 }
 
 func (categoryService CategoryService) GetCategoryById(id uint) (*categories_entities.Category, error) {

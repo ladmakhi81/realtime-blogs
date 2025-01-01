@@ -1,8 +1,6 @@
 package pkg_utils
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"net/http"
 	"os"
@@ -23,14 +21,6 @@ func GenerateToken(id uint, email string) (string, error) {
 		return "", err
 	}
 	return signedToken, nil
-}
-
-func GenerateRefreshToken() (string, error) {
-	refreshToken := make([]byte, 100)
-	if _, err := rand.Read(refreshToken); err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(refreshToken), nil
 }
 
 func VerifyAccessToken(token string) (*pkg_types.UserAuthClaim, error) {

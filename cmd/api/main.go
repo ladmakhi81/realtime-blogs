@@ -24,6 +24,7 @@ import (
 	users_routers "github.com/ladmakhi81/realtime-blogs/internal/users/routers"
 	users_services "github.com/ladmakhi81/realtime-blogs/internal/users/services"
 	pkg_storage "github.com/ladmakhi81/realtime-blogs/pkg/storage"
+	pkg_utils "github.com/ladmakhi81/realtime-blogs/pkg/utils"
 )
 
 func main() {
@@ -33,8 +34,18 @@ func main() {
 		log.Fatalln("The env files not loaded")
 	}
 
+	uploadedDirectory, uploadedDirectoryErr := pkg_utils.GetUploadedFileDirectory()
+
+	if uploadedDirectoryErr != nil {
+		log.Fatalln("unable to find root directory")
+	}
+
 	router := mux.NewRouter()
 	apiRouter := router.PathPrefix("/api/v1").Subrouter()
+
+	router.PathPrefix("/uploads/").Handler(
+		http.StripPrefix("/uploads/", http.FileServer(http.Dir(uploadedDirectory))),
+	)
 
 	// database
 	dbStorage := pkg_storage.Storage{}
@@ -70,7 +81,7 @@ func main() {
 	blogRouter.Setup()
 	userRouter.Setup()
 
-	listenErr := http.ListenAndServe(":8080", apiRouter)
+	listenErr := http.ListenAndServe(":8080", router)
 
 	if listenErr != nil {
 		log.Fatalln(listenErr)

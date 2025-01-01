@@ -32,7 +32,7 @@ func (tokenService TokenService) CreateToken(user *users_entities.User) (*auth_e
 			accessTokenErr.Error(),
 		)
 	}
-	refreshToken, refreshTokenErr := pkg_utils.GenerateRefreshToken()
+	refreshToken, refreshTokenErr := pkg_utils.GenerateCode(100)
 	if refreshTokenErr != nil {
 		return nil, pkg_types.NewServerError(
 			"error in generating refresh token",

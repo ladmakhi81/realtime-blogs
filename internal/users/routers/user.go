@@ -34,4 +34,13 @@ func (userRouter *UserRouter) Setup() {
 			),
 		),
 	).Methods(http.MethodPatch)
+
+	userApi.HandleFunc(
+		"/upload-profile",
+		pkg_decorators.ApiErrorDecorator(
+			pkg_decorators.ApiAuthDecorator(
+				userRouter.UserHandler.UploadProfile,
+			),
+		),
+	).Methods(http.MethodPatch)
 }

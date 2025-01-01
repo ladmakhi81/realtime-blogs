@@ -108,4 +108,55 @@ func (blogRepository BlogRepository) GetBlogById(id uint) (*blogs_entities.Blog,
 	return blog, nil
 }
 
-func (blogRepository BlogRepository) GetBlogs() {}
+func (blogRepository BlogRepository) GetBlogs(page, limit uint) (*[]blogs_entities.Blog, error) {
+	command := `
+		SELECT
+		b.id, b.title, b.content, b.tags, b.created_at, b.updated_at,
+		c.id, c.title,
+		u.id, u.email, u.first_name, u.last_name
+		FROM _blogs b
+		INNER JOIN _categories c ON c.id = b.category_id
+		INNER JOIN _users u ON u.id = b.created_by_id
+		ORDER BY b.id DESC
+		LIMIT $1 OFFSET $2;
+	`
+	rows, queryErr := blogRepository.Storage.DB.Query(command, limit, page*limit)
+	if queryErr != nil {
+		return nil, queryErr
+	}
+	defer rows.Close()
+	blogs := []blogs_entities.Blog{}
+	for rows.Next() {
+		blog := blogs_entities.Blog{}
+		category := categories_entities.Category{}
+		user := users_entities.User{}
+		var tags string
+		scanErr := rows.Scan(
+			&blog.ID, &blog.Title, &blog.Content, &tags, &blog.CreatedAt, &blog.UpdatedAt,
+			&category.ID, &category.Title,
+			&user.ID, &user.Email, &user.FirstName, &user.LastName,
+		)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+		blog.CreatedBy = user
+		blog.Category = category
+		blogs = append(blogs, blog)
+	}
+	return &blogs, nil
+}
+
+func (blogRepository BlogRepository) GetBlogsCount() (uint, error) {
+	command := `
+		SELECT COUNT(*) as total_blogs FROM _blogs;
+	`
+	var count uint
+	row := blogRepository.Storage.DB.QueryRow(command)
+	scanErr := row.Scan(
+		&count,
+	)
+	if scanErr != nil {
+		return 0, scanErr
+	}
+	return count, nil
+}

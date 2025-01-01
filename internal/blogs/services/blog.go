@@ -94,3 +94,23 @@ func (blogService BlogService) DeleteBlogById(id uint, creatorId uint) error {
 	}
 	return nil
 }
+
+func (blogService BlogService) GetBlogs(page, limit uint) (*[]blogs_entities.Blog, uint, error) {
+	blogs, findBlogsErr := blogService.BlogRepository.GetBlogs(page, limit)
+	if findBlogsErr != nil {
+		return nil, 0, pkg_types.NewServerError(
+			"error in finding blogs",
+			"BlogService.GetBlogs",
+			findBlogsErr.Error(),
+		)
+	}
+	blogsCount, findCountBlogsErr := blogService.BlogRepository.GetBlogsCount()
+	if findCountBlogsErr != nil {
+		return nil, 0, pkg_types.NewServerError(
+			"error in finding count of blogs",
+			"BlogService.GetBlogs",
+			findCountBlogsErr.Error(),
+		)
+	}
+	return blogs, blogsCount, nil
+}

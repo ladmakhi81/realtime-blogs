@@ -54,7 +54,9 @@ func (blogRouter *BlogRouter) Setup() {
 	).Methods(http.MethodGet)
 
 	blogApi.HandleFunc(
-		"/",
-		blogRouter.BlogHandler.GetBlogs,
-	).Methods("get")
+		"",
+		pkg_decorators.ApiErrorDecorator(
+			blogRouter.BlogHandler.GetBlogs,
+		),
+	).Methods(http.MethodGet)
 }

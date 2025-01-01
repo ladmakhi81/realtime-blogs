@@ -12,4 +12,5 @@ type BlogServiceContract interface {
 	) (*blogs_entities.Blog, error)
 	GetBlogById(id uint) (*blogs_entities.Blog, error)
 	DeleteBlogById(id uint, creatorId uint) error
+	GetBlogs(page, limit uint) (*[]blogs_entities.Blog, uint, error)
 }

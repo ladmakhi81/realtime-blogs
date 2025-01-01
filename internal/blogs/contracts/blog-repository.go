@@ -6,5 +6,6 @@ type BlogRepositoryContract interface {
 	CreateBlog(blog *blogs_entities.Blog) error
 	DeleteBlogById(id uint) error
 	GetBlogById(id uint) (*blogs_entities.Blog, error)
-	GetBlogs()
+	GetBlogs(page, limit uint) (*[]blogs_entities.Blog, error)
+	GetBlogsCount() (uint, error)
 }

@@ -2,6 +2,7 @@ package blogs_handlers
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -74,7 +75,27 @@ func (blogHandler BlogHandler) DeleteBlogById(w http.ResponseWriter, r *http.Req
 	return nil
 }
 
-func (blogHandler BlogHandler) GetBlogs(w http.ResponseWriter, r *http.Request) {
+func (blogHandler BlogHandler) GetBlogs(w http.ResponseWriter, r *http.Request) error {
+	page, limit, paginationErr := pkg_utils.ExtractPaginationQuery(r.URL.Query())
+	if paginationErr != nil {
+		return paginationErr
+	}
+	blogs, blogsCount, findBlogsErr := blogHandler.BlogService.GetBlogs(page, limit)
+	if findBlogsErr != nil {
+		return findBlogsErr
+	}
+
+	pkg_utils.JsonResponse(
+		w,
+		http.StatusOK,
+		blogs_types.NewGetBlogsListResponse(
+			blogs,
+			page,
+			uint(math.Ceil(float64(blogsCount)/float64(limit))),
+			blogsCount,
+		),
+	)
+	return nil
 }
 
 func (blogHandler BlogHandler) GetBlogById(w http.ResponseWriter, r *http.Request) error {

@@ -72,3 +72,25 @@ func (blogService BlogService) GetBlogById(id uint) (*blogs_entities.Blog, error
 	}
 	return blog, nil
 }
+
+func (blogService BlogService) DeleteBlogById(id uint, creatorId uint) error {
+	blog, err := blogService.GetBlogById(id)
+	if err != nil {
+		return err
+	}
+	if blog.CreatedBy.ID != creatorId {
+		return pkg_types.NewClientError(
+			http.StatusForbidden,
+			"only the creator of blog can delete this blog",
+		)
+	}
+	deleteErr := blogService.BlogRepository.DeleteBlogById(blog.ID)
+	if deleteErr != nil {
+		return pkg_types.NewServerError(
+			"error in deleting blog by id",
+			"BlogService.DeleteBlogById",
+			deleteErr.Error(),
+		)
+	}
+	return nil
+}

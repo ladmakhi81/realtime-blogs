@@ -48,7 +48,21 @@ func (blogRepository BlogRepository) CreateBlog(blog *blogs_entities.Blog) error
 	return scanErr
 }
 
-func (blogRepository BlogRepository) DeleteBlogById() {}
+func (blogRepository BlogRepository) DeleteBlogById(id uint) error {
+	command := `
+		DELETE FROM _blogs WHERE id = $1
+	`
+	statement, prepareErr := blogRepository.Storage.DB.Prepare(command)
+	defer statement.Close()
+	if prepareErr != nil {
+		return prepareErr
+	}
+	_, executeErr := statement.Exec(id)
+	if executeErr != nil {
+		return executeErr
+	}
+	return nil
+}
 
 func (blogRepository BlogRepository) GetBlogById(id uint) (*blogs_entities.Blog, error) {
 	command := `

@@ -49,7 +49,29 @@ func (blogHandler BlogHandler) CreateBlog(w http.ResponseWriter, r *http.Request
 	return nil
 }
 
-func (blogHandler BlogHandler) DeleteBlogById(w http.ResponseWriter, r *http.Request) {
+func (blogHandler BlogHandler) DeleteBlogById(w http.ResponseWriter, r *http.Request) error {
+	params := mux.Vars(r)
+	idParam := params["id"]
+	authUserId := r.Context().Value("AuthUser").(*pkg_types.UserAuthClaim).ID
+	var id uint
+	if parsedId, parsedErr := strconv.Atoi(idParam); parsedErr != nil {
+		return pkg_types.NewClientError(
+			http.StatusBadRequest,
+			"invalid blog id",
+		)
+	} else {
+		id = uint(parsedId)
+	}
+	err := blogHandler.BlogService.DeleteBlogById(id, authUserId)
+	if err != nil {
+		return err
+	}
+	pkg_utils.JsonResponse(
+		w,
+		http.StatusOK,
+		nil,
+	)
+	return nil
 }
 
 func (blogHandler BlogHandler) GetBlogs(w http.ResponseWriter, r *http.Request) {

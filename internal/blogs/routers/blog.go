@@ -37,8 +37,12 @@ func (blogRouter *BlogRouter) Setup() {
 
 	blogApi.HandleFunc(
 		"/{id}",
-		blogRouter.BlogHandler.DeleteBlogById,
-	).Methods("delete")
+		pkg_decorators.ApiErrorDecorator(
+			pkg_decorators.ApiAuthDecorator(
+				blogRouter.BlogHandler.DeleteBlogById,
+			),
+		),
+	).Methods(http.MethodDelete)
 
 	blogApi.HandleFunc(
 		"/{id}",

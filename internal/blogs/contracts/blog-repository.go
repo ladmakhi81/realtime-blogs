@@ -5,6 +5,6 @@ import blogs_entities "github.com/ladmakhi81/realtime-blogs/internal/blogs/entit
 type BlogRepositoryContract interface {
 	CreateBlog(blog *blogs_entities.Blog) error
 	DeleteBlogById()
-	GetBlogById()
+	GetBlogById(id uint) (*blogs_entities.Blog, error)
 	GetBlogs()
 }

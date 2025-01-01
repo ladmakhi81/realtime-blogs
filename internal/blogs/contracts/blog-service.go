@@ -10,4 +10,5 @@ type BlogServiceContract interface {
 		reqBody blogs_types.CreateBlogReqBody,
 		creatorId uint,
 	) (*blogs_entities.Blog, error)
+	GetBlogById(id uint) (*blogs_entities.Blog, error)
 }

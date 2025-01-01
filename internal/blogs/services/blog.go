@@ -1,6 +1,8 @@
 package blogs_services
 
 import (
+	"net/http"
+
 	blogs_contracts "github.com/ladmakhi81/realtime-blogs/internal/blogs/contracts"
 	blogs_entities "github.com/ladmakhi81/realtime-blogs/internal/blogs/entities"
 	blogs_types "github.com/ladmakhi81/realtime-blogs/internal/blogs/types"
@@ -48,6 +50,24 @@ func (blogService BlogService) CreateBlog(reqBody blogs_types.CreateBlogReqBody,
 			"error in creating blog",
 			"BlogService.CreateBlog",
 			createBlogErr.Error(),
+		)
+	}
+	return blog, nil
+}
+
+func (blogService BlogService) GetBlogById(id uint) (*blogs_entities.Blog, error) {
+	blog, findBlogErr := blogService.BlogRepository.GetBlogById(id)
+	if findBlogErr != nil {
+		return nil, pkg_types.NewServerError(
+			"error in finding blog by id",
+			"BlogService.GetBlogById",
+			findBlogErr.Error(),
+		)
+	}
+	if blog == nil {
+		return nil, pkg_types.NewClientError(
+			http.StatusNotFound,
+			"blog not found",
 		)
 	}
 	return blog, nil

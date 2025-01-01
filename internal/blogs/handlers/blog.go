@@ -3,7 +3,9 @@ package blogs_handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	blogs_contracts "github.com/ladmakhi81/realtime-blogs/internal/blogs/contracts"
 	blogs_types "github.com/ladmakhi81/realtime-blogs/internal/blogs/types"
 	pkg_types "github.com/ladmakhi81/realtime-blogs/pkg/types"
@@ -53,5 +55,26 @@ func (blogHandler BlogHandler) DeleteBlogById(w http.ResponseWriter, r *http.Req
 func (blogHandler BlogHandler) GetBlogs(w http.ResponseWriter, r *http.Request) {
 }
 
-func (blogHandler BlogHandler) GetBlogById(w http.ResponseWriter, r *http.Request) {
+func (blogHandler BlogHandler) GetBlogById(w http.ResponseWriter, r *http.Request) error {
+	params := mux.Vars(r)
+	idParam := params["id"]
+	var id uint
+	if parsedId, parsedErr := strconv.Atoi(idParam); parsedErr != nil {
+		return pkg_types.NewClientError(
+			http.StatusBadRequest,
+			"invalid blog id",
+		)
+	} else {
+		id = uint(parsedId)
+	}
+	blog, err := blogHandler.BlogService.GetBlogById(id)
+	if err != nil {
+		return err
+	}
+	pkg_utils.JsonResponse(
+		w,
+		http.StatusOK,
+		blogs_types.NewGetBlogDetailResponse(blog),
+	)
+	return nil
 }

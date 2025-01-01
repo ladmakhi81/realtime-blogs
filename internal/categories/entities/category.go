@@ -6,8 +6,8 @@ import (
 )
 
 type Category struct {
-	Title     string               `json:"title"`
-	CreatedBy *users_entities.User `json:"createdBy"`
+	Title     string               `json:"title,omitempty"`
+	CreatedBy *users_entities.User `json:"createdBy,omitempty"`
 	pkg_entities.BaseEntity
 }
 

@@ -42,8 +42,12 @@ func (blogRouter *BlogRouter) Setup() {
 
 	blogApi.HandleFunc(
 		"/{id}",
-		blogRouter.BlogHandler.GetBlogById,
-	).Methods("get")
+		pkg_decorators.ApiErrorDecorator(
+			pkg_decorators.ApiAuthDecorator(
+				blogRouter.BlogHandler.GetBlogById,
+			),
+		),
+	).Methods(http.MethodGet)
 
 	blogApi.HandleFunc(
 		"/",
